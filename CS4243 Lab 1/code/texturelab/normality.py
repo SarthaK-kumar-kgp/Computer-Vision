@@ -41,73 +41,89 @@ def _interior(score: np.ndarray, border: int) -> np.ndarray:
 def fit_normal_model(feature_maps: list[np.ndarray] | np.ndarray, config: NormalityConfig,
                      feature_names: list[str] | None = None) -> NormalModel:
     """Fit normal feature statistics using normal training maps only."""
-    # YOUR CODE HERE
-    #
-    # TODO 1 — Normalise and validate the collection
-    #   - Accept either one H x W x D array or a non-empty collection of maps.
-    #   - Reject an empty collection; preserve the common feature dimension.
-    #
-    # TODO 2 — Build the normal patch sample
-    #   - Flatten each map to (H*W) x D and concatenate across training images.
-    #   - If there are more than config.max_samples rows, select exactly that
-    #     many without replacement using config.random_seed.
-    #
-    # TODO 3 — Fit diagonal normal statistics
-    #   - Compute a D-vector mean and population standard deviation.
-    #
-    # TODO 4 — Estimate a normal-only provisional threshold
-    #   - Score every original map with _scores, smooth it with _pool_score, crop
-    #     the configured unreliable border with _interior, then concatenate.
-    #   - Use config.mask_threshold when explicitly supplied; otherwise take
-    #     config.threshold_percentile of the pooled interior normal scores.
-    #
-    # TODO 5 — Return the model
-    #   - Store float32 mean/std, a Python-float threshold, and feature_names.
-    raise NotImplementedError
+    if isinstance(feature_maps, np.ndarray) and feature_maps.ndim == 3:
+        maps = [feature_maps]
+    else:
+        maps = list(feature_maps)
+
+    if not maps:
+        raise ValueError("feature_maps must not be empty")
+
+    feature_count = maps[0].shape[-1]
+    for feature_map in maps:
+        if feature_map.ndim != 3 or feature_map.shape[-1] != feature_count:
+            raise ValueError("feature maps must have the same feature dimension")
+
+    samples = np.concatenate([feature_map.reshape(-1, feature_count) for feature_map in maps])
+    if len(samples) > config.max_samples:
+        indices = np.random.default_rng(config.random_seed).choice(
+            len(samples), config.max_samples, replace=False
+        )
+        samples = samples[indices]
+
+    mean = samples.mean(axis=0)
+    std = samples.std(axis=0)
+
+    if config.mask_threshold is None:
+        normal_scores = []
+        for feature_map in maps:
+            score = _scores(feature_map, mean, std, config.epsilon)
+            score = _pool_score(score, config)
+            normal_scores.append(_interior(score, config.ignore_border).ravel())
+        threshold = float(np.percentile(np.concatenate(normal_scores), config.threshold_percentile))
+    else:
+        threshold = float(config.mask_threshold)
+
+    return NormalModel(mean.astype(np.float32), std.astype(np.float32), threshold, feature_names)
 
 
 def predict_anomaly(feature_map: np.ndarray, model: NormalModel, config: NormalityConfig
                     ) -> tuple[np.ndarray, float, np.ndarray]:
     """Return dense score, image-level score, and predicted mask."""
-    # YOUR CODE HERE
-    #
-    # TODO 1 — Validate feature compatibility
-    #   - The final feature dimension must equal the fitted model mean length.
-    #
-    # TODO 2 — Compute the dense anomaly score
-    #   - Use _scores for RMS standardized distance with config.epsilon.
-    #   - Smooth coherent evidence with _pool_score.
-    #
-    # TODO 3 — Aggregate an image-level score
-    #   - Crop the unreliable border with _interior and take
-    #     config.image_percentile over that interior only.
-    #
-    # TODO 4 — Produce the binary localization mask
-    #   - Threshold the full score map at model.threshold.
-    #   - Force the configured outer border to False without altering scores.
-    #   - Return (float32 score map, Python-float image score, Boolean mask).
-    raise NotImplementedError
+    if feature_map.shape[-1] != len(model.mean):
+        raise ValueError("feature dimension does not match the fitted model")
+
+    score = _scores(feature_map, model.mean, model.std, config.epsilon)
+    score = _pool_score(score, config)
+    image_score = float(np.percentile(_interior(score, config.ignore_border), config.image_percentile))
+    mask = score >= model.threshold
+
+    if config.ignore_border > 0:
+        border = config.ignore_border
+        mask[:border] = False
+        mask[-border:] = False
+        mask[:, :border] = False
+        mask[:, -border:] = False
+
+    return score.astype(np.float32), image_score, mask
 
 
 def select_mask_threshold(score_maps: list[np.ndarray], masks: list[np.ndarray],
                           candidates: int = 80) -> float:
     """Choose the pixel-F1-optimal threshold on public validation only."""
-    # YOUR CODE HERE
-    #
-    # TODO 1 — Validate the validation inputs
-    #   - Require matching non-empty score/mask collections and candidates >= 2.
-    #   - Convert scores to float and masks to bool; require matching shapes and
-    #     finite scores for every pair.
-    #   - Callers handle border cropping, so do not crop again here.
-    #
-    # TODO 2 — Build candidate thresholds
-    #   - Flatten and concatenate all validation pixels.
-    #   - Use evenly spaced quantile levels from 0.5 through 0.999.
-    #
-    # TODO 3 — Select by pixel F1
-    #   - For each threshold, predict score >= threshold and compute TP/FP/FN.
-    #   - Use 2*TP / max(1, 2*TP + FP + FN) to avoid division by zero.
-    #   - Keep the threshold with the greatest F1; deterministic ties should
-    #     retain the first encountered candidate.
-    #   - Return the selected threshold as a Python float.
-    raise NotImplementedError
+    if not score_maps or len(score_maps) != len(masks) or candidates < 2:
+        raise ValueError("score maps and masks must be non-empty matching collections")
+
+    scores = [np.asarray(score, dtype=float) for score in score_maps]
+    truths = [np.asarray(mask, dtype=bool) for mask in masks]
+    for score, truth in zip(scores, truths):
+        if score.shape != truth.shape or not np.isfinite(score).all():
+            raise ValueError("score maps and masks must have matching shapes and finite scores")
+
+    all_scores = np.concatenate([score.ravel() for score in scores])
+    all_truths = np.concatenate([truth.ravel() for truth in truths])
+    thresholds = np.quantile(all_scores, np.linspace(0.5, 0.999, candidates))
+
+    best_threshold = float(thresholds[0])
+    best_f1 = -1.0
+    for threshold in thresholds:
+        predicted = all_scores >= threshold
+        true_positive = np.count_nonzero(predicted & all_truths)
+        false_positive = np.count_nonzero(predicted & ~all_truths)
+        false_negative = np.count_nonzero(~predicted & all_truths)
+        f1 = 2 * true_positive / max(1, 2 * true_positive + false_positive + false_negative)
+        if f1 > best_f1:
+            best_f1 = f1
+            best_threshold = float(threshold)
+
+    return best_threshold

@@ -1,0 +1,16 @@
+path,split,material,defect_type,mask_path,attributes,annotator_1_terms,annotator_2_terms,annotation_completed_before_inference,viewpoint,scale,illumination,exif_removed
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 16.54.52.jpeg,personal,carpet,,,,woven;fibrous;striped,woven;fibrous;grid;striped,yes,straight,wide,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 16.55.30.jpeg,personal,carpet,,,,bumpy;fibrous;woven,woven;fibrous;bumpy;grid,yes,straight,close-up,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 16.55.53.jpeg,personal,carpet,,,,grid;woven;fibrous,woven;fibrous;bumpy;grid,yes,oblique,wide,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 16.57.20.jpeg,personal,carpet,,,,striped;woven;fibrous,woven;fibrous;grid;banded;striped,yes,straight,wide,side-lit,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 16.59.25.jpeg,personal,carpet,staged loose thread,,,bumpy;banded;striped,woven;fibrous;bumpy;grid,yes,straight,close-up,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.01.23.jpeg,personal,wood,,,,marbled;striped;banded,striped;banded;marbled;fibrous,yes,straight,close-up,flash,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.01.49.jpeg,personal,wood,,,,fibrous;banded;marbled,striped;banded;marbled;fibrous,yes,straight,wide,flash,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.02.40.jpeg,personal,wood,,,,banded;marbled;striped,striped;banded;marbled;fibrous,yes,oblique,wide,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.04.16.jpeg,personal,wood,,,,striped;banded;marbled,striped;banded;marbled;fibrous,yes,straight,wide,uneven,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.05.06.jpeg,personal,wood,staged crumbs,,,marbled;banded;striped;fibrous,striped;banded;marbled;fibrous,yes,straight,close-up,flash,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.07.45.jpeg,personal,tile,,,,marbled;banded;striped;grid,marbled;banded;grid;striped,yes,straight,wide,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.07.59.jpeg,personal,tile,,,,marbled;banded;striped,marbled;banded;striped,yes,straight,close-up,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.08.17.jpeg,personal,tile,,,,grid;marbled;banded,marbled;banded;grid;striped,yes,oblique,wide,even,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.08.58.jpeg,personal,tile,,,,banded;marbled;grid;striped,marbled;banded;grid;striped,yes,straight,wide,uneven,yes
+../student_files/personal_photos/WhatsApp Image 2026-10-02 at 17.10.38.jpeg,personal,tile,staged paper strip,,,banded;grid;striped;marbled,marbled;banded;grid;striped,yes,straight,close-up,even,yes
